@@ -83,6 +83,48 @@
     </div>
 
     <!-- Extra pop ups -->
+    <!-- Delete element pop up -->
+    <div id="context-menu">
+        <div class="context-item" id="delete-node">🗑️ Delete This Element</div>
+        <div class="context-item" id="delete-edge">🗑️ Delete This Connection</div>
+    </div>
+
+    <!-- Add connection pop up -->
+    <div id="conn-modal">
+        <div class="conn-modal-content">
+            <div class="conn-modal-title">🔗 Add Connection</div>
+            <div class="conn-form-group">
+                <label>Process</label>
+                <select id="conn-proc-select"></select>
+            </div>
+            <div class="conn-form-group">
+                <label>Resource</label>
+                <select id="conn-res-select"></select>
+            </div>
+            <div class="conn-form-group">
+                <label>Connection Type</label>
+                <div class="conn-type-group">
+                    <button class="conn-type-btn allocate active-alloc" id="typeAllocBtn">✅ Allocate</button>
+                    <button class="conn-type-btn request" id="typeReqBtn">⏳ Request</button>
+                </div>
+            </div>
+            <div class="conn-modal-actions">
+                <button id="connSubmitBtn">Add Connection</button>
+                <button id="connCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deadlock detection and recover pop up -->
+    <div id="explanation-modal">
+        <div class="modal-content">
+            <div class="modal-header">💀 DEADLOCK DETECTED!</div>
+            <div class="modal-body" id="explanation-text"></div>
+            <div class="modal-footer">
+                <button id="closeModal">Close & Recover</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
