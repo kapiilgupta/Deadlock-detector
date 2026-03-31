@@ -1,0 +1,308 @@
+/* Basic styling for header, body and main wrapper */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #0b0d1a, #1a1f36, #0e1122);
+    color: #e0f7ff;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 1600px;
+}
+
+h1 {
+    font-size: 2.1rem;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.991);
+    margin-bottom: 10px;
+}
+
+.status {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 25px auto 25px auto;
+    max-width: 1200px;
+    width: 100%;
+    height: 50px;
+    font-size: 1rem;
+}
+
+.main-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1600px;
+    align-items: flex-start;
+}
+
+/* Styling for simulation section */
+.simulation-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#canvas {
+    width: 850px;
+    height: 500px;
+    background: rgba(8, 12, 30, 0.6);
+    border-radius: 14px;
+    position: relative;
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.2);
+}
+
+/* Styling for control section */
+#control-panel {
+    width: 220px;
+    background: rgba(15, 20, 40, 0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 100, 255, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+    height: 500px;
+}
+
+/* Styling for ststem analysis panel */
+#analysis-panel {
+    width: 250px;
+    background: rgba(10, 14, 35, 0.92);
+    border-radius: 16px;
+    padding: 18px 16px;
+    box-shadow: 0 0 24px rgba(0, 230, 180, 0.2);
+    border: 1px solid rgba(0, 230, 180, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 500px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,200,150,0.3) transparent;
+    flex-shrink: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,200,150,0.3) transparent;
+}
+
+.analysis-section {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 12px;
+}
+
+.analysis-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.analysis-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5bb8a0;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.state-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    background: rgba(0, 220, 130, 0.15);
+    color: #00dc82;
+    border: 1px solid rgba(0, 220, 130, 0.35);
+    transition: all 0.3s ease;
+}
+
+.state-badge.danger {
+    background: rgba(255, 40, 80, 0.15);
+    color: #ff4466;
+    border-color: rgba(255, 40, 80, 0.35);
+}
+
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #4da6ff;
+    line-height: 1;
+}
+
+.stat-name {
+    font-size: 0.68rem;
+    color: #7a9fc0;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.util-row {
+    margin-bottom: 7px;
+}
+
+.util-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #a0cfff;
+    margin-bottom: 3px;
+}
+
+.util-bar-bg {
+    background: rgba(255,255,255,0.07);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.util-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(to right, #00dc82, #00b8a0);
+    transition: width 0.4s ease;
+}
+
+.util-bar-fill.full {
+    background: linear-gradient(to right, #ff5252, #d32f2f);
+}
+
+.util-bar-fill.partial {
+    background: linear-gradient(to right, #ffd740, #ff9800);
+}
+
+.proc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.8rem;
+}
+
+.proc-id {
+    color: #a0cfff;
+    font-weight: 600;
+}
+
+.proc-pill {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.proc-pill.safe {
+    background: rgba(0, 220, 130, 0.15);
+    color: #00dc82;
+    border: 1px solid rgba(0, 220, 130, 0.3);
+}
+
+.proc-pill.waiting {
+    background: rgba(255, 215, 64, 0.15);
+    color: #ffd740;
+    border: 1px solid rgba(255, 215, 64, 0.3);
+}
+
+.proc-pill.deadlocked {
+    background: rgba(255, 40, 80, 0.2);
+    color: #ff4466;
+    border: 1px solid rgba(255, 40, 80, 0.35);
+}
+
+/* Styling for Control section */
+.panel-title {
+    font-size: 1.2rem;
+    color: #4da6ff;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+#analysis-panel .panel-title {
+    color: #00dc82;
+    font-size: 1.1rem;
+}
+
+button {
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    text-align: center;
+}
+
+#addProcBtn {
+    background: linear-gradient(to right, #4da6ff, #0077ff);
+    color: white;
+}
+
+#addResBtn {
+    background: linear-gradient(to right, #ff6b6b, #d32f2f);
+    color: white;
+}
+
+#addConnBtn {
+    background: linear-gradient(to right, #26c6da, #00838f);
+    color: white;
+}
+
+#detectBtn {
+    background: linear-gradient(to right, #00c853, #00796b);
+    color: white;
+}
+
+#togglePreventBtn {
+    background: linear-gradient(to right, #7e57c2, #4527a0);
+    color: white;
+}
+
+#resetBtn {
+    background: linear-gradient(to right, #9c27b0, #6a1b9a);
+    color: white;
+}
+
+button:hover {
+    transform: translateX(4px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
