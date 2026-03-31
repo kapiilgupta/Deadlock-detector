@@ -306,3 +306,278 @@ button:disabled {
     cursor: not-allowed;
     transform: none;
 }
+
+/* Styling for processes resources and edges*/
+.node {
+    position: absolute;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    text-align: center;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.process {
+    width: 60px;
+    height: 60px;
+    background: #4da6ff;
+    color: white;
+}
+
+.resource {
+    width: 55px;
+    height: 55px;
+    background: #ff6b6b;
+    color: white;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.edge {
+    position: absolute;
+    height: 3px;
+    background: #00ffcc;
+    transform-origin: left center;
+    z-index: -1;
+    cursor: pointer;
+}
+
+.request-edge {
+    background: #ff5252 !important;
+}
+
+.deadlocked-process {
+    animation: pulseRed 1.8s infinite;
+    background: #ff3366 !important;
+    color: white !important;
+}
+
+.deadlocked-resource {
+    animation: pulseRed 1.8s infinite;
+    background: #ff0033 !important;
+    color: white !important;
+    border: 2px solid #ff0000;
+}
+
+.deadlock-edge {
+    background: #ff0000 !important;
+    height: 4px !important;
+}
+
+@keyframes pulseRed {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 50, 0.8);
+    }
+
+    50% {
+        box-shadow: 0 0 0 15px rgba(255, 0, 50, 0);
+    }
+}
+
+.preview {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border: 2px dashed white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.7;
+}
+
+/* Styling for delete element and connection pop up */
+#context-menu {
+    position: absolute;
+    background: rgba(30, 35, 60, 0.95);
+    border: 1px solid #4da6ff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    padding: 6px 0;
+}
+
+.context-item {
+    padding: 8px 20px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.context-item:hover {
+    background: rgba(77, 166, 255, 0.3);
+}
+
+/* Styling for Deadlock detection and recover pop up */
+
+#explanation-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(20, 25, 50, 0.95);
+    border-radius: 16px;
+    padding: 25px;
+    width: 90%;
+    max-width: 700px;
+    box-shadow: 0 0 30px rgba(255, 0, 50, 0.6);
+    border: 1px solid #ff3366;
+}
+
+.modal-header {
+    color: #ff5555;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modal-body {
+    color: #f0f8ff;
+    line-height: 1.6;
+    font-size: 1.05rem;
+    white-space: pre-wrap;
+}
+
+.modal-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+#closeModal {
+    padding: 10px 25px;
+    background: linear-gradient(to right, #ff3366, #d32f2f);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* Styling for Add connection pop up  */
+#conn-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.conn-modal-content {
+    background: rgba(20, 25, 50, 0.97);
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 0 30px rgba(0, 150, 255, 0.5);
+    border: 1px solid #4da6ff;
+}
+
+.conn-modal-title {
+    color: #4da6ff;
+    font-size: 1.3rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.conn-form-group {
+    margin-bottom: 16px;
+}
+
+.conn-form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #a0cfff;
+    font-size: 0.9rem;
+}
+
+.conn-form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #4da6ff;
+    background: rgba(10, 15, 35, 0.9);
+    color: #e0f7ff;
+    font-size: 1rem;
+}
+
+.conn-type-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.conn-type-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    width: auto;
+}
+
+.conn-type-btn.allocate {
+    background: rgba(0, 255, 204, 0.15);
+    color: #00ffcc;
+    border-color: #00ffcc;
+}
+
+.conn-type-btn.request {
+    background: rgba(255, 82, 82, 0.15);
+    color: #ff5252;
+    border-color: #ff5252;
+}
+
+.conn-type-btn.active-alloc {
+    background: #00ffcc;
+    color: #000;
+}
+
+.conn-type-btn.active-req {
+    background: #ff5252;
+    color: #fff;
+}
+
+.conn-modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+#connSubmitBtn {
+    background: linear-gradient(to right, #26c6da, #00838f);
+    color: white;
+    flex: 1;
+}
+
+#connCancelBtn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    flex: 1;
+}
