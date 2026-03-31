@@ -163,9 +163,137 @@ function showContextMenu(x, y, type, data) {
     }, 100);
 }
 
-// Function for hhiding the context menu
+// Function for hiding the context menu
 function hideContextMenu() {
     contextMenu.style.display = 'none';
     contextTarget = null;
     document.removeEventListener('click', hideContextMenu);
+}
+
+// Add listener for click event on delete node btn
+deleteNodeBtn.onclick = () => {
+    if (contextTarget?.type === 'node') {
+        if (contextTarget.data.type === 'process') {
+            deleteProcess(contextTarget.data.id);
+        } else {
+            deleteResource(contextTarget.data.id);
+        }
+    }
+    hideContextMenu();
+};
+
+// Add listener for click event on delete edge btn
+deleteEdgeBtn.onclick = () => {
+    if (contextTarget?.type === 'edge') {
+        deleteConnection(contextTarget.data.pId, contextTarget.data.rId);
+    }
+    hideContextMenu();
+};
+
+// Function for managing the node and connection
+function enterPlacementMode(type) {
+    pendingAdd = type;
+    canvas.style.cursor = 'crosshair';
+    updateStatus(`Click on canvas to place a new ${type}.`);
+    canvas.addEventListener('mousemove', showPreview);
+    canvas.addEventListener('click', placeNode);
+}
+
+//Function for showing the preview
+function showPreview(e) {
+    const rect = canvas.getBoundingClientRect();
+    const size = pendingAdd === 'resource' ? 27 : 30;
+    const x = e.clientX - rect.left - size;
+    const y = e.clientY - rect.top - size;
+    if (previewEl) previewEl.remove();
+    previewEl = document.createElement('div');
+    previewEl.className = 'preview';
+    previewEl.style.left = `${x}px`;
+    previewEl.style.top = `${y}px`;
+    if (pendingAdd === 'resource') {
+        previewEl.style.width = '55px';
+        previewEl.style.height = '55px';
+        previewEl.style.border = '2px dashed #ff6b6b';
+    }
+    canvas.appendChild(previewEl);
+}
+
+//Function for placing the nodes in canvas
+function placeNode(e) {
+    if (!pendingAdd) return;
+    const rect = canvas.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+    x = Math.max(30, Math.min(CANVAS_WIDTH - 30, x));
+    y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, y));
+
+    if (pendingAdd === 'process') {
+        const id = getId('P');
+        processes.push({ id, x, y });
+        updateStatus(`✅ Placed ${id}`);
+    } else {
+        const id = getId('R');
+        resources.push({ id, x, y, instances: 1 });
+        updateStatus(`✅ Placed ${id}`);
+    }
+    exitPlacementMode();
+    render();
+}
+
+
+function exitPlacementMode() {
+    pendingAdd = null;
+    canvas.style.cursor = 'default';
+    if (previewEl) previewEl.remove();
+    previewEl = null;
+    canvas.removeEventListener('mousemove', showPreview);
+    canvas.removeEventListener('click', placeNode);
+}
+
+function makeDraggable(el, node, isProcess) {
+    el.addEventListener('mousedown', (e) => {
+        if (e.button === 2) return;
+        if (pendingAdd) return;
+        e.stopPropagation();
+        draggedNode = { el, node, isProcess };
+        const rect = el.getBoundingClientRect();
+        dragOffsetX = e.clientX - rect.left;
+        dragOffsetY = e.clientY - rect.top;
+        canvas.style.cursor = 'grabbing';
+        el.style.zIndex = '10';
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('mouseup', dragEnd);
+    });
+
+    el.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showContextMenu(
+            e.clientX,
+            e.clientY,
+            'node',
+            { id: node.id, type: isProcess ? 'process' : 'resource' }
+        );
+    });
+}
+
+function dragMove(e) {
+    if (!draggedNode) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    let x = e.clientX - canvasRect.left - dragOffsetX;
+    let y = e.clientY - canvasRect.top - dragOffsetY;
+    x = Math.max(30, Math.min(CANVAS_WIDTH - 30, x));
+    y = Math.max(30, Math.min(CANVAS_HEIGHT - 30, y));
+    draggedNode.node.x = x;
+    draggedNode.node.y = y;
+    render();
+}
+
+function dragEnd() {
+    if (draggedNode) {
+        draggedNode.el.style.zIndex = '';
+        draggedNode = null;
+        canvas.style.cursor = 'default';
+    }
+    document.removeEventListener('mousemove', dragMove);
+    document.removeEventListener('mouseup', dragEnd);
 }
