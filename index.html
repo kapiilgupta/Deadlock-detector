@@ -1,19 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deadlock Detector</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Header Part -->
+    <div class="header">
+        <h1>Deadlock Defender</h1>
+        <div class="status" id="status">Right-click any element to delete it!</div>
+    </div>
 
     <!-- Main Part -->
+    <div class="main-wrapper">
 
-    <!-- Footer part -->
-     
+        <!-- System analysis section -->
+        <div id="analysis-panel">
+            <div class="panel-title">System Analysis</div>
+
+            <div class="analysis-section">
+                <div class="analysis-label">System State</div>
+                <div class="state-badge" id="system-state-badge">✅ Safe</div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-label">Overview</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-processes">0</div>
+                        <div class="stat-name">Processes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-resources">0</div>
+                        <div class="stat-name">Resources</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-allocs">0</div>
+                        <div class="stat-name">Allocations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-requests">0</div>
+                        <div class="stat-name">Requests</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-label">Resource Utilization</div>
+                <div id="resource-util-list">
+                    <div class="no-data-msg">No resources yet</div>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-label">Process Status</div>
+                <div id="process-status-list">
+                    <div class="no-data-msg">No processes yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Section -->
+        <div class="simulation-area">
+            <div id="canvas"></div>
+        </div>
+
+        <!-- Controls section  -->
+        <div id="control-panel">
+            <div class="panel-title">Control Panel</div>
+            <button id="addProcBtn">➕ Add Process</button>
+            <button id="addResBtn">➕ Add Resource</button>
+            <button id="addConnBtn">🔗 Add Connection</button>
+            <button id="detectBtn">🔍 Detect Deadlock</button>
+            <button id="togglePreventBtn">🛡️ Prevention: OFF</button>
+            <button id="resetBtn">🗑️ Clear All</button>
+        </div>
+
+    </div>
+
+    <!-- Extra pop ups -->
 
     <script src="app.js"></script>
 </body>
+
 </html>
