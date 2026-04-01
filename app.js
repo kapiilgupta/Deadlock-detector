@@ -240,7 +240,6 @@ function placeNode(e) {
     render();
 }
 
-
 function exitPlacementMode() {
     pendingAdd = null;
     canvas.style.cursor = 'default';
@@ -297,3 +296,355 @@ function dragEnd() {
     document.removeEventListener('mousemove', dragMove);
     document.removeEventListener('mouseup', dragEnd);
 }
+
+//Function for creating the edge 
+function createEdge(pId, rId, isRequest = false) {
+    if (preventionEnabled && isRequest) {
+        const orderedRes = [...resources].sort((a, b) => a.id.localeCompare(b.id)).map(r => r.id);
+        const held = allocations.filter(a => a.pId === pId).map(a => a.rId);
+        const maxHeldIndex = held.length > 0 ? Math.max(...held.map(id => orderedRes.indexOf(id))) : -1;
+        const newResIndex = orderedRes.indexOf(rId);
+        if (newResIndex <= maxHeldIndex) {
+            updateStatus(`🛡️ Prevention blocked: ${pId} can't request ${rId}.`);
+            return false;
+        }
+    }
+
+    if (isRequest) {
+        if (!requests.some(req => req.pId === pId && req.rId === rId)) {
+            requests.push({ pId, rId });
+            updateStatus(`⏳ ${pId} → REQUEST → ${rId}`);
+        }
+    } else {
+        if (isAvailable(rId)) {
+            allocations.push({ pId, rId });
+            updateStatus(`✅ ${pId} → ALLOCATED → ${rId}`);
+        } else {
+            if (!requests.some(req => req.pId === pId && req.rId === rId)) {
+                requests.push({ pId, rId });
+            }
+            updateStatus(`⚠️ ${rId} busy → request queued.`);
+        }
+    }
+    render();
+    return true;
+}
+
+//Function for detecting the deadlock
+function checkForDeadlock(showToast = true) {
+    deadlockedProcesses = new Set();
+    deadlockedResources = new Set();
+
+    const wfGraph = {};
+    const heldBy = {};
+    const waitingFor = {};
+
+    processes.forEach(p => {
+        wfGraph[p.id] = new Set();
+        waitingFor[p.id] = [];
+    });
+
+    allocations.forEach(a => {
+        heldBy[a.rId] = a.pId;
+    });
+
+    requests.forEach(req => {
+        waitingFor[req.pId].push(req.rId);
+        const holder = heldBy[req.rId];
+        if (holder && holder !== req.pId) {
+            wfGraph[req.pId].add(holder);
+        }
+    });
+
+    const visited = new Set();
+    const recStack = new Set();
+    const inCycle = new Set();
+
+    function dfs(node) {
+        visited.add(node);
+        recStack.add(node);
+        for (const neighbor of wfGraph[node] || []) {
+            if (!visited.has(neighbor)) {
+                if (dfs(neighbor)) {
+                    inCycle.add(node);
+                    return true;
+                }
+            } else if (recStack.has(neighbor)) {
+                inCycle.add(node);
+                inCycle.add(neighbor);
+                return true;
+            }
+        }
+        recStack.delete(node);
+        return false;
+    }
+
+    for (const p of processes) {
+        if (!visited.has(p.id)) dfs(p.id);
+    }
+
+    deadlockedProcesses = inCycle;
+
+    if (deadlockedProcesses.size === 0) {
+        if (showToast) updateStatus("✅ No deadlock detected.");
+        render();
+        updateAnalysisPanel();
+        return false;
+    }
+
+    deadlockedProcesses.forEach(pId => {
+        allocations.filter(a => a.pId === pId).forEach(a => deadlockedResources.add(a.rId));
+        (waitingFor[pId] || []).forEach(rId => deadlockedResources.add(rId));
+    });
+
+    const cycle = Array.from(deadlockedProcesses);
+    let msg = "🔴 DEADLOCK:\n";
+    cycle.forEach(p => {
+        const held = allocations.filter(a => a.pId === p).map(a => a.rId).join(', ') || 'none';
+        const waits = waitingFor[p].join(', ') || 'none';
+        msg += `\n• ${p} holds [${held}], waits for [${waits}]`;
+    });
+    msg += "\n\n💡 Circular wait detected!";
+    explanationText.textContent = msg;
+    explanationModal.style.display = 'flex';
+    render();
+    updateAnalysisPanel();
+    return true;
+}
+
+//Function for recover the deadlock
+function recover() {
+    if (deadlockedProcesses.size === 0) return;
+    const victim = Array.from(deadlockedProcesses)[0];
+    allocations = allocations.filter(a => a.pId !== victim);
+    requests = requests.filter(r => r.pId !== victim);
+    deadlockedProcesses = new Set();
+    deadlockedResources = new Set();
+    render();
+    for (let i = requests.length - 1; i >= 0; i--) {
+        const req = requests[i];
+        if (isAvailable(req.rId)) {
+            allocations.push({ pId: req.pId, rId: req.rId });
+            requests.splice(i, 1);
+        }
+    }
+    setTimeout(() => {
+        updateStatus(`✅ Recovered by terminating ${victim}.`);
+        checkForDeadlock(false);
+        updateAnalysisPanel();
+    }, 600);
+}
+
+// Function for rendering
+function render() {
+    canvas.innerHTML = '';
+    if (previewEl) canvas.appendChild(previewEl);
+
+    [...allocations, ...requests].forEach(link => {
+        const p = processes.find(pr => pr.id === link.pId);
+        const r = resources.find(rs => rs.id === link.rId);
+        if (!p || !r) return;
+
+        const dx = r.x - p.x;
+        const dy = r.y - p.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+        const edge = document.createElement('div');
+        edge.className = 'edge';
+        if (requests.some(req => req.pId === link.pId && req.rId === link.rId)) {
+            edge.classList.add('request-edge');
+        }
+        if (deadlockedProcesses.has(link.pId) && deadlockedResources.has(link.rId)) {
+            edge.classList.add('deadlock-edge');
+        }
+        edge.style.width = `${len}px`;
+        edge.style.left = `${p.x}px`;
+        edge.style.top = `${p.y}px`;
+        edge.style.transform = `rotate(${angle}deg)`;
+
+        edge.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showContextMenu(e.clientX, e.clientY, 'edge', { pId: link.pId, rId: link.rId });
+        });
+
+        canvas.appendChild(edge);
+    });
+
+    resources.forEach(res => {
+        const el = document.createElement('div');
+        el.className = 'node resource';
+        const used = allocations.filter(a => a.rId === res.id).length;
+        el.innerHTML = `${res.id}<br>(${used}/${res.instances})`;
+        el.style.left = `${res.x - 27}px`;
+        el.style.top = `${res.y - 27}px`;
+        if (deadlockedResources.has(res.id)) {
+            el.classList.add('deadlocked-resource');
+        }
+        el.addEventListener('click', (e) => {
+            if (selectedProcess && !draggedNode) {
+                createEdge(selectedProcess, res.id, e.shiftKey);
+                selectedProcess = null;
+                render();
+            }
+        });
+        makeDraggable(el, res, false);
+        canvas.appendChild(el);
+    });
+
+    processes.forEach(proc => {
+        const el = document.createElement('div');
+        el.className = 'node process';
+        el.textContent = proc.id;
+        el.style.left = `${proc.x - 30}px`;
+        el.style.top = `${proc.y - 30}px`;
+        if (deadlockedProcesses.has(proc.id)) {
+            el.classList.add('deadlocked-process');
+        }
+        if (selectedProcess === proc.id && !deadlockedProcesses.has(proc.id)) {
+            el.style.boxShadow = '0 0 0 3px #ffff00';
+        }
+        el.addEventListener('click', (e) => {
+            if (draggedNode) return;
+            e.stopPropagation();
+            selectedProcess = proc.id;
+            render();
+            updateStatus(`Selected ${proc.id}. Click resource. Hold SHIFT for REQUEST.`);
+        });
+        makeDraggable(el, proc, true);
+        canvas.appendChild(el);
+    });
+
+    const handleBgClick = (e) => {
+        if (e.target === canvas && !pendingAdd && !draggedNode) {
+            selectedProcess = null;
+            render();
+            updateStatus("Click a process, then a resource. Hold Shift for request.");
+        }
+        canvas.removeEventListener('click', handleBgClick);
+    };
+    if (!pendingAdd && !draggedNode) {
+        canvas.addEventListener('click', handleBgClick);
+    }
+
+    updateAnalysisPanel();
+}
+
+//Basic listeners of buttons
+document.getElementById('addProcBtn').addEventListener('click', () => {
+    exitPlacementMode();
+    enterPlacementMode('process');
+});
+
+document.getElementById('addResBtn').addEventListener('click', () => {
+    exitPlacementMode();
+    enterPlacementMode('resource');
+});
+
+document.getElementById('detectBtn').addEventListener('click', () => {
+    checkForDeadlock(true);
+});
+
+const connModal = document.getElementById('conn-modal');
+const connProcSelect = document.getElementById('conn-proc-select');
+const connResSelect = document.getElementById('conn-res-select');
+const typeAllocBtn = document.getElementById('typeAllocBtn');
+const typeReqBtn = document.getElementById('typeReqBtn');
+let connIsRequest = false;
+
+typeAllocBtn.addEventListener('click', () => {
+    connIsRequest = false;
+    typeAllocBtn.className = 'conn-type-btn allocate active-alloc';
+    typeReqBtn.className = 'conn-type-btn request';
+});
+
+typeReqBtn.addEventListener('click', () => {
+    connIsRequest = true;
+    typeReqBtn.className = 'conn-type-btn request active-req';
+    typeAllocBtn.className = 'conn-type-btn allocate';
+});
+
+document.getElementById('addConnBtn').addEventListener('click', () => {
+    if (processes.length === 0 || resources.length === 0) {
+        updateStatus("⚠️ Add at least one process and one resource first.");
+        return;
+    }
+    
+    connProcSelect.innerHTML = processes.map(p => `<option value="${p.id}">${p.id}</option>`).join('');
+    connResSelect.innerHTML = resources.map(r => `<option value="${r.id}">${r.id} (${allocations.filter(a => a.rId === r.id).length}/${r.instances})</option>`).join('');
+    
+    connIsRequest = false;
+    typeAllocBtn.className = 'conn-type-btn allocate active-alloc';
+    typeReqBtn.className = 'conn-type-btn request';
+    connModal.style.display = 'flex';
+});
+
+document.getElementById('connCancelBtn').addEventListener('click', () => {
+    connModal.style.display = 'none';
+});
+
+document.getElementById('connSubmitBtn').addEventListener('click', () => {
+    const pId = connProcSelect.value;
+    const rId = connResSelect.value;
+    if (!pId || !rId) {
+        updateStatus("⚠️ Select both a process and a resource.");
+        return;
+    }
+    connModal.style.display = 'none';
+    createEdge(pId, rId, connIsRequest);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    exitPlacementMode();
+    draggedNode = null;
+    processes = [];
+    resources = [];
+    allocations = [];
+    requests = [];
+    deadlockedProcesses = new Set();
+    deadlockedResources = new Set();
+    preventionEnabled = false;
+    selectedProcess = null;
+    procCounter = 0;
+    resCounter = 0;
+    document.getElementById('togglePreventBtn').textContent = "🛡️ Prevention: OFF";
+    explanationModal.style.display = 'none';
+    updateStatus("✅ Simulation cleared.");
+    render();
+});
+
+document.getElementById('togglePreventBtn').addEventListener('click', () => {
+    preventionEnabled = !preventionEnabled;
+    document.getElementById('togglePreventBtn').textContent =
+        `🛡️ Prevention: ${preventionEnabled ? 'ON' : 'OFF'}`;
+    updateStatus(`Prevention ${preventionEnabled ? 'enabled' : 'disabled'}.`);
+    updateAnalysisPanel();
+});
+
+document.getElementById('closeModal').addEventListener('click', () => {
+    explanationModal.style.display = 'none';
+    recover();
+});
+
+//Basic Deadlock example (Initial state)
+processes = [
+    { id: 'P0', x: 250, y: 150 },
+    { id: 'P1', x: 550, y: 150 }
+];
+resources = [
+    { id: 'R0', x: 320, y: 380, instances: 1 },
+    { id: 'R1', x: 480, y: 380, instances: 1 }
+];
+allocations = [
+    { pId: 'P0', rId: 'R0' }, 
+    { pId: 'P1', rId: 'R1' }
+];
+requests = [
+    { pId: 'P0', rId: 'R1' }, 
+    { pId: 'P1', rId: 'R0' }
+];
+
+procCounter = 2;
+resCounter = 2;
+updateStatus("✅ Ready! Right-click on any element to delete it.");
+render();
